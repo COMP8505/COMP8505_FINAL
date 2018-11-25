@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +33,31 @@ typedef struct process_stats {
     long syscr;
     long cancelled_write_bytes;
 } process_stats;
+
+int compare_process_stats(const void *a, const void *b) {
+    process_stats **a_stat = (process_stats **)a;
+    process_stats **b_stat = (process_stats **)b;
+
+    float res;
+    float call_ratio_a, call_ratio_b;
+
+    if ((*a_stat)->PID == 1)
+        return 1;
+    if ((*b_stat)->PID == 1)
+        return -1;
+
+    call_ratio_a = ((*a_stat)->rchar + (*a_stat)->wchar) /
+                   ((*a_stat)->syscr + (*a_stat)->syscw);
+    call_ratio_b = ((*b_stat)->rchar + (*b_stat)->wchar) /
+                   ((*b_stat)->syscr + (*b_stat)->syscw);
+
+    call_ratio_a += strlen((*a_stat)->cmdline);
+    call_ratio_b += strlen((*b_stat)->cmdline);
+
+    res = call_ratio_b - call_ratio_a;
+
+    return (int)res;
+}
 
 char *read_file(const char *path) {
     char *databuf = malloc(DATA_BUFF_LEN);
@@ -154,40 +180,28 @@ int main(int argc, char **argv) {
         processes[procstored++] = stats;
     }
 
+    qsort(processes, procstored, sizeof(process_stats *),
+          compare_process_stats);
+
     for (int i = 0; i < procstored; i++) {
         printf("PID: %ld:\
-        \nCMDLine: %s\
-        \nrchar: %ld\
-        \nwchar: %ld\
-        \nsyscr: %ld\
-        \nsyscw: %ld\
-        \nread_bytes: %ld\
-        \nwrite_bytes: %ld\
-        \ncancelled_write_bytes: %ld\
+        \n\tCMDLine: %s\
+        \n\trchar: %ld\
+        \n\twchar: %ld\
+        \n\tsyscr: %ld\
+        \n\tsyscw: %ld\
+        \n\tread_bytes: %ld\
+        \n\twrite_bytes: %ld\
+        \n\tcancelled_write_bytes: %ld\
         \n\
         \n\n\n",
-               processes[i]->PID, processes[i]->cmdline,
-               processes[i]->rchar, processes[i]->wchar,
-               processes[i]->syscr, processes[i]->syscw,
+               processes[i]->PID, processes[i]->cmdline, processes[i]->rchar,
+               processes[i]->wchar, processes[i]->syscr, processes[i]->syscw,
                processes[i]->read_bytes, processes[i]->write_bytes,
                processes[i]->cancelled_write_bytes);
     }
 
     inotify_fd = inotify_init1(IN_NONBLOCK);
 
-    // int fd = socket(AF_INET, SOCK_DGRAM, 0);
-    // sockaddr_in sa;
-    // bzero(&sa, sizeof(sockaddr_in));
-    // sa.sin_family = AF_INET;
-    // sa.sin_port = htons(8000);
-    // sa.sin_addr.s_addr = inet_addr("142.232.142.161");
-    // for (int i = 0; i < 1000; i++) {
-    //     sleep(1);
-    //     char buf[52];
-    //     memset(buf, 65, 51);
-    //     buf[52] = '\0';
-    //     int ret = sendto(fd, buf, sizeof(buf), 0, (sockaddr *)&sa,
-    //     sizeof(sa)); printf("Sent: %d\n", ret);
-    // }
     return 1;
 }
