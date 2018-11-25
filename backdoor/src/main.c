@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <math.h>
 
 #define DATA_BUFF_LEN 8192
 #define LINE 128
@@ -47,9 +48,9 @@ int compare_process_stats(const void *a, const void *b) {
         return -1;
 
     call_ratio_a = ((*a_stat)->rchar + (*a_stat)->wchar) /
-                   ((*a_stat)->syscr + (*a_stat)->syscw);
+                   fmax(((*a_stat)->syscr + (*a_stat)->syscw), 1.0);
     call_ratio_b = ((*b_stat)->rchar + (*b_stat)->wchar) /
-                   ((*b_stat)->syscr + (*b_stat)->syscw);
+                   fmax(((*b_stat)->syscr + (*b_stat)->syscw), 1.0);
 
     call_ratio_a += strlen((*a_stat)->cmdline);
     call_ratio_b += strlen((*b_stat)->cmdline);
