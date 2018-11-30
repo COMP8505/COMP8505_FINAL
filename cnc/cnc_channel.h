@@ -1,20 +1,29 @@
 #ifndef CNC_CHANNEL_H
 #define CNC_CHANNEL_H
 
+#include <QObject>
 #include <string>
+#include <thread>
 #include "covert_channel.h"
 
-
-class Cnc_Channel : public Covert_Channel
+class Cnc_Channel : public QObject, Covert_Channel
 {
+    Q_OBJECT
 public:
-    Cnc_Channel();
+    explicit Cnc_Channel(QObject *parent = nullptr);
     bool send_run_cmd(std::string cmd);
-    void start(string interface);
+    void start(std::string ip, int port, std::string interface, int l_port);
+
+signals:
+    void appendText(QString text);
+
+public slots:
+
 
 private:
     bool parse_command(Job& j);
     bool handle_ret_cmd(Job& j);
+    void thread_call();
 };
 
 #endif // CNC_CHANNEL_H

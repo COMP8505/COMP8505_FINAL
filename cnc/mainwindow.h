@@ -16,12 +16,18 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    Cnc_Channel cnc_channel;
+
 private slots:
-    void on_pushButton_clicked();
+    void appendText(QString text);
+    void on_pushButton_Enter_clicked();
+    void on_pushButton_Test_clicked();
 
 private:
     Ui::MainWindow *ui;
-    Cnc_Channel cnc_channel;
+
+    std::string interfaceName;
+    int listenPort;
 };
 
 #endif // MAINWINDOW_H

