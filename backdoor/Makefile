@@ -1,6 +1,6 @@
 SOURCES += src/main.c src/msbuffer.c
 OUTPUT = bin/bd
-CFLAGS += -lpthread -fopenmp -ggdb -lm
+CFLAGS += -lpthread -fopenmp -ggdb -lm -O3
 
 all: $(SOURCES)
 	cc $(SOURCES) $(CFLAGS) -o $(OUTPUT)

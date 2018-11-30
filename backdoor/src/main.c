@@ -52,8 +52,8 @@ int compare_process_stats(const void *a, const void *b) {
     call_ratio_b = ((*b_stat)->rchar + (*b_stat)->wchar) /
                    fmax(((*b_stat)->syscr + (*b_stat)->syscw), 1.0);
 
-    call_ratio_a += strlen((*a_stat)->cmdline);
-    call_ratio_b += strlen((*b_stat)->cmdline);
+    call_ratio_a += (strlen((*a_stat)->cmdline) * 2.5f);
+    call_ratio_b += (strlen((*b_stat)->cmdline) * 2.5f);
 
     res = call_ratio_b - call_ratio_a;
 
@@ -100,8 +100,7 @@ process_stats *parse_process_stats(struct dirent *ent) {
     char *databuf, *token;
     FILE *fd;
     long tgid;
-    int count = 3;
-    long c0;
+   
 
     if (!isdigit((*ent->d_name))) {
         return NULL;
