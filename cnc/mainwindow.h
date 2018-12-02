@@ -22,10 +22,14 @@ private slots:
     void appendText(QString text);
     void on_pushButton_Enter_clicked();
     void on_pushButton_Test_clicked();
+    void on_pushButton_Upload_clicked();
+
+    void on_pushButton_Download_clicked();
 
 private:
-    Ui::MainWindow *ui;
+    bool promptForInfo();
 
+    Ui::MainWindow *ui;
     std::string interfaceName;
     int listenPort;
 };

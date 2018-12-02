@@ -54,3 +54,5 @@ unix:!macx: PRE_TARGETDEPS += $$PWD/./libtins.a
 LIBS += -lpcap
 QMAKE_CXXFLAGS += -fopenmp
 LIBS += -fopenmp
+
+LIBS += -lboost_system

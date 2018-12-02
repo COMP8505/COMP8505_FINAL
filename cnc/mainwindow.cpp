@@ -5,6 +5,7 @@
 #include <iostream>
 #include <QInputDialog>
 #include <QDir>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -12,6 +13,22 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    if(!promptForInfo())
+        return;
+
+    QObject::connect(&cnc_channel, SIGNAL(appendText(QString)),
+                     this, SLOT(appendText(QString)));
+
+    Testing t;
+    t.runtests();
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+bool MainWindow::promptForInfo(){
     bool ok;
     QString text = QInputDialog::getText(this, tr("Input Interface Name"),
                                          tr("Interface:"), QLineEdit::Normal,
@@ -20,7 +37,8 @@ MainWindow::MainWindow(QWidget *parent) :
         interfaceName = text.toStdString();
     }
     else{
-        QApplication::quit();
+        QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
+        return false;
     }
 
     ok = false;
@@ -33,20 +51,12 @@ MainWindow::MainWindow(QWidget *parent) :
         std::cout << "listenPort: " << listenPort << std::endl;
     }
     else{
-        QApplication::quit();
+        QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
+        return false;
     }
-
-    QObject::connect(&cnc_channel, SIGNAL(appendText(QString)),
-                     this, SLOT(appendText(QString)));
-
-    //Testing t;
-    //t.run_tests();
+    return true;
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
 
 void MainWindow::appendText(QString text){
     std::cout << "appendText: " << text.toStdString() << std::endl;
@@ -64,4 +74,24 @@ void MainWindow::on_pushButton_Test_clicked()
     string ip = ui->lineEdit_IP->text().toStdString();
     int port = ui->lineEdit_Port->text().toInt();
     cnc_channel.start(ip, port, interfaceName, listenPort);
+}
+
+void MainWindow::on_pushButton_Upload_clicked()
+{
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setViewMode(QFileDialog::Detail);\
+    QStringList fileNames;
+    if (dialog.exec())
+        fileNames = dialog.selectedFiles();
+    for ( const auto& i : fileNames  )
+    {
+        cnc_channel.send_file(i.toStdString());
+    }
+}
+
+void MainWindow::on_pushButton_Download_clicked()
+{
+    string filepath = ui->lineEdit_Download->text().toStdString();
+    cnc_channel.get_file(filepath);
 }

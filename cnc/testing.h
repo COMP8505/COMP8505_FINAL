@@ -6,7 +6,10 @@ class Testing
 {
 public:
     Testing();
-    void run_tests();
+    void runtests();
+    void execute_test();
+    void readfile_test();
+    void writefile_test();
 };
 
 #endif // TESTING_H

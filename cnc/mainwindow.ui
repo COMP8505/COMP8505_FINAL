@@ -153,24 +153,11 @@
     <property name="title">
      <string>Upload File</string>
     </property>
-    <widget class="QPushButton" name="pushButton_Browse">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>80</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Browse</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="pushButton_Upload">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>60</y>
+       <y>30</y>
        <width>80</width>
        <height>25</height>
       </rect>
