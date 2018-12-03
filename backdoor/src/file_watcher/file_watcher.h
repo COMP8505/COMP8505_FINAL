@@ -19,7 +19,7 @@ public:
     File_Watcher();
     File_Watcher(Backdoor_Channel& bc) : ch(bc) {};
     int start(std::string path, uint32_t mask);
-    int watch(std::string path, uint32_t mask, void(*(callback)(void)));
+    int watch(std::string path, uint32_t mask);
 
 private:
     const char* WATCH_DIR = "/tmp";

