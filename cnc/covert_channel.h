@@ -31,7 +31,7 @@ public:
     } Config;
 
     typedef struct Job {
-            uchar_vector job;
+            std::map<int, string, std::greater<int>>  job;
             string command;
             string argument;
             Address address;
@@ -67,7 +67,6 @@ private:
     PacketSender sender;
     jobs_map jobs;
     string server_id;
-    string eof_flag;
     string key;
 
 };

