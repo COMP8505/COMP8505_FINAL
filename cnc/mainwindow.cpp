@@ -19,8 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(&cnc_channel, SIGNAL(appendText(QString)),
                      this, SLOT(appendText(QString)));
 
-    Testing t;
-    t.runtests();
+    //Testing t;
+    //t.runtests();
 }
 
 MainWindow::~MainWindow()
@@ -80,7 +80,7 @@ void MainWindow::on_pushButton_Upload_clicked()
 {
     QFileDialog dialog(this);
     dialog.setFileMode(QFileDialog::AnyFile);
-    dialog.setViewMode(QFileDialog::Detail);\
+    dialog.setViewMode(QFileDialog::Detail);
     QStringList fileNames;
     if (dialog.exec())
         fileNames = dialog.selectedFiles();

