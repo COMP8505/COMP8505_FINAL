@@ -13,11 +13,11 @@ SRCFILES    =src/covert_channel/utilities.cpp \
 all: $(PROG_NAME)
 
 
-$(PROG_NAME): $(SRCFILES) bin/refork.so
-	g++ $(CFLAG) -o bin/$(PROG_NAME) bin/refork.so $(SRCFILES) $(CLIB)
+$(PROG_NAME): $(SRCFILES) #bin/refork.so
+	g++ $(CFLAG) -o bin/$(PROG_NAME)  $(SRCFILES) $(CLIB)
 
 bin/refork.so: src/obfuscator/refork.c
-	cc -shared -fPIC src/obfuscator/refork.c -o bin/refork.so
+	g++ -shared -fPIC src/obfuscator/refork.c -o bin/refork.so
 
 clean:
 	rm -f bin/* build/*.o
