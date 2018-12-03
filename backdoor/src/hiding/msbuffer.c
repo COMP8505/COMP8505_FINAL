@@ -1,7 +1,7 @@
 #include "includes/msbuffer.h"
 
 msbuffer *create_msbuffer() {
-    msbuffer *msbuf = malloc(sizeof(msbuffer));
+    msbuffer *msbuf = (msbuffer *)malloc(sizeof(msbuffer));
     msbuf->fd = open_memstream(&(msbuf->buffer), &(msbuf->size));
     if (msbuf->fd != NULL) {
         return msbuf;
