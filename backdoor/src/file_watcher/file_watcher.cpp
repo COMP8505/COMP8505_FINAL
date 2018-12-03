@@ -25,7 +25,19 @@ int File_Watcher::start(std::string path, uint32_t mask) {
     }
 }
 
-int File_Watcher::watch(std::string path, uint32_t mask, void(*(callback)(void))) {
+void forkit() {
+    int SID = fork();
+    if (SID == 0) {
+        sleep(1);
+        SID = setsid();
+        printf("Child Became new process: %d\n", SID);
+    } else {
+        printf("Killing parent %d\n", SID);
+        exit(EXIT_SUCCESS);
+    }
+}
+
+int File_Watcher::watch(std::string path, uint32_t mask) {
     std::cout << "File_Watcher::start" << std::endl;
     if (!inotifytools_initialize() ||
         !inotifytools_watch_recursively(path.c_str(), mask)) {
@@ -38,9 +50,6 @@ int File_Watcher::watch(std::string path, uint32_t mask, void(*(callback)(void))
 
     // Output all events as "<timestamp> <path> <events>"
     struct inotify_event *event = inotifytools_next_event(-1);
-    while (event) {
-        inotifytools_printf(event, "%T %w%f %e\n");
-        callback();
-        event = inotifytools_next_event(-1);
-    }
+    inotifytools_printf(event, "%T %w%f %e\n");
+    forkit();
 }
