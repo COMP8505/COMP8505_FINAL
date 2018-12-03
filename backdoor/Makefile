@@ -1,6 +1,6 @@
 SOURCES += src/main.c src/msbuffer.c
 OUTPUT = bin/bd_nice
-CFLAGS += -lpthread -fopenmp -ggdb -lm -O3
+CFLAGS += -lpthread -fopenmp -linotifytools -ggdb -lm -O3
 
 
 all: $(SOURCES)
