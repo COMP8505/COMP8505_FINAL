@@ -1,0 +1,7 @@
+//sudo yum groupinstall "X Software Development"
+
+dnf install libx11
+
+make
+
+
